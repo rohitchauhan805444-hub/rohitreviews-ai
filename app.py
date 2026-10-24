@@ -13,7 +13,7 @@ st.set_page_config(
 st.title("🎬 @rohitreviews Reel Creator")
 st.caption("AI-powered live pop-culture radar & high-retention scriptwriter.")
 
-# Retrieve API key
+# Retrieve API key from Streamlit secrets
 api_key = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY"))
 
 if not api_key:
@@ -34,38 +34,16 @@ ANGLES = [
 
 selected_angle = random.choice(ANGLES)
 
-def get_active_model():
-    """Dynamically finds the best active model so it never hits a 404 error."""
-    try:
-        available_models = [
-            m.name for m in genai.list_models() 
-            if "generateContent" in m.supported_generation_methods
-        ]
-        # Prefer the newest flash models
-        for preference in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"]:
-            for m in available_models:
-                if preference in m:
-                    return m
-        # Fallback to any model with 'flash'
-        for m in available_models:
-            if "flash" in m:
-                return m
-        # Otherwise fallback to the first supported model
-        return available_models[0]
-    except Exception:
-        # Default safety fallback
-        return "gemini-2.0-flash"
-
 def generate_reel_script(angle):
-    model_name = get_active_model()
-    model = genai.GenerativeModel(model_name=model_name)
+    # Using Google's active Gemini 3.8 Flash model
+    model = genai.GenerativeModel(model_name="gemini-3.8-flash")
     
     prompt = f"""
     You are the head creative writer for the Instagram movie & pop-culture page '@rohitreviews'.
     Target Audience: Gen-Z and Millennials who love cinema, OTT shows, MCU, DC, anime, and internet drama.
     
     Task:
-    1. Pick ONE exciting, viral, or trending movie/TV show/pop-culture topic.
+    1. Pick ONE exciting, viral, or trending movie/TV show/pop-culture topic from this week.
     2. Frame it using this angle: "{angle}".
     3. Write a 30 to 45-second high-retention Instagram Reel script.
 
